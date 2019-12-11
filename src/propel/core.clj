@@ -1,6 +1,8 @@
 (ns propel.core
   (:gen-class))
 
+; (propel.core/-main)
+
 (def example-push-state
   {:exec '()
    :integer '(1 2 3 4 5 6 7)
@@ -460,12 +462,30 @@
 (defn short-long
   [n]
   (cond
-    (zero? (rem n 999)) "small"
-    (zero? (rem n 1000)) ""
-    (zero? (rem n 1500)) ""
-    (zero? (rem n 2000)) "large"
-    (zero? (rem n 3000)) "large"
+    (zero? (n < 1000)) "small"
+    (zero? (n >= 1000 < 2000)) ""
+    (zero? (n >= 2000)) "large"
     ))
+
+(def short-long-training
+  (map short-long (range 750 3001 250))
+  )
+
+(defn chars
+  [max-error correct-output actual-output]
+  (min max-error (-(count actual-output) (count correct-output))))
+
+(def short-long-failure 100)
+
+(defn short-long-failure-error
+  [actual-output]
+  (cond
+    (every? #(clojure.string/includes? actual-output %) ["small" "large"])
+    (+ 10 (chars 5 "" actual-output))
+    (some #(clojure.string/includes? actual-output %) ["small" "large"])
+    (+ 20 (chars 10 "" actual-output))
+    :else short-long-failure-error))
+
 
 ;;;;;;;;;
 ;; String classification
