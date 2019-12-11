@@ -32,16 +32,17 @@
    'string_length
    'string_includes?
    'close
-   0
-   1
+   999
+   1000
+   1500
+   2000
+   3000
    true
    false
    ""
-   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-   "A"
-   "C"
-   "G"
-   "T"))
+   "small"
+   "large"
+   ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
   {'exec_dup 1
@@ -453,6 +454,18 @@
            :behaviors outputs
            :errors errors
            :total-error (apply +' errors))))
+
+;;;;;;;;;
+;; Short long fitness
+(defn short-long
+  [n]
+  (cond
+    (zero? (rem n 999)) "small"
+    (zero? (rem n 1000)) ""
+    (zero? (rem n 1500)) ""
+    (zero? (rem n 2000)) "large"
+    (zero? (rem n 3000)) "large"
+    ))
 
 ;;;;;;;;;
 ;; String classification
