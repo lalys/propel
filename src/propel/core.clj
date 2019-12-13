@@ -459,7 +459,7 @@
 
 ;;;;;;;;;
 ;; Short long fitness
-(defn short-long
+(defn small-large
   [n]
   (cond
     (zero? (n < 1000)) "small"
@@ -467,24 +467,24 @@
     (zero? (n >= 2000)) "large"
     ))
 
-(def short-long-training
-  (map short-long (range 750 3001 250))
-  )
+(def small-large-training
+(map small-large (range 750 3001 250))
+)
 
 (defn chars
   [max-error correct-output actual-output]
   (min max-error (-(count actual-output) (count correct-output))))
 
-(def short-long-failure 100)
+(def small-large-failure 100)
 
-(defn short-long-failure-error
+(defn small-large-failure-error
   [actual-output]
   (cond
     (every? #(clojure.string/includes? actual-output %) ["small" "large"])
     (+ 10 (chars 5 "" actual-output))
     (some #(clojure.string/includes? actual-output %) ["small" "large"])
     (+ 20 (chars 10 "" actual-output))
-    :else short-long-failure-error))
+    :else small-large-failure-error))
 
 
 ;;;;;;;;;
@@ -533,4 +533,3 @@
                                         (map read-string args)))
                           [:error-function]
                           #(if (fn? %) % (eval %))))))
-
