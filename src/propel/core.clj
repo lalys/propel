@@ -1,5 +1,7 @@
 (ns propel.core
-  (:gen-class))
+  (:gen-class)
+  )
+
 
 ; (propel.core/-main)
 
@@ -34,16 +36,22 @@
    'string_length
    'string_includes?
    'close
-   999
+   750
    1000
+   1250
    1500
+   1750
    2000
+   2250
+   2500
+   2750
    3000
    true
    false
    ""
    "small"
    "large"
+   "abcdefghijklmnopqrstuvwxyz"
    ))
 
 (def opens ; number of blocks opened by instructions (default = 0)
@@ -458,7 +466,7 @@
            :total-error (apply +' errors))))
 
 ;;;;;;;;;
-;; Short long fitness
+;; small large fitness
 (defn small-large
   [n]
   (cond
@@ -485,6 +493,51 @@
     (some #(clojure.string/includes? actual-output %) ["small" "large"])
     (+ 20 (chars 10 "" actual-output))
     :else small-large-failure-error))
+
+;(defn small-large-error-function
+  
+;  )
+
+
+(defn nextelt
+  "Given two characters, the previous row, and a row we are
+  building, determine out the next element fot this row."
+  [char1 char2 prevrow thisrow position]
+  (if (= char1 char2)
+    (prevrow (- position 1))
+    (+ 1 (min
+          (prevrow (- position 1))
+          (prevrow position)
+          (last thisrow)))))
+
+(defn nextrow
+  "Based on the next character from string1 and the whole of string2
+  calculate the next row. Initially thisrow contains one number."
+  [char1 str2 prevrow thisrow]
+  (let [char2 (first str2)
+        position (count thisrow)]
+    (if (= (count thisrow) (count prevrow))
+      thisrow
+      (recur
+       char1
+       (rest str2)
+       prevrow
+       (conj thisrow (nextelt char1 char2 prevrow thisrow position))))))
+
+
+(defn levenshtein1
+  "Calculate the Levenshtein distance between two strings."
+  ([str1 str2]
+   (let [row0 (vec (map first (map vector (iterate inc 1) str2)))]
+     (levenshtein1 1 (vec (cons 0 row0)) str1 str2)))
+  ([row-nr prevrow str1 str2]
+   (let [next-row (nextrow (first str1) str2 prevrow (vector row-nr))
+         str1-remainder (.substring str1 1)]
+     (if (= "" str1-remainder)
+       (last next-row)
+       (recur (inc row-nr) next-row str1-remainder str2)))))
+
+
 
 
 ;;;;;;;;;
@@ -527,7 +580,7 @@
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
-                                  :parent-selection :tournament
+                                  :parent-selection :lexicase
                                   :tournament-size 5}
                                  (apply hash-map
                                         (map read-string args)))
