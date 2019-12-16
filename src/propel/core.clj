@@ -1,6 +1,5 @@
 (ns propel.core
-  (:gen-class)
-  )
+  (:gen-class))
 
 
 ; (propel.core/-main)
@@ -22,6 +21,8 @@
    'integer_*
    'integer_%
    'integer_=
+   ;'interger_zero?
+   ;'interger_to_string
    'exec_dup
    'exec_if
    'boolean_and
@@ -36,16 +37,6 @@
    'string_length
    'string_includes?
    'close
-   750
-   1000
-   1250
-   1500
-   1750
-   2000
-   2250
-   2500
-   2750
-   3000
    true
    false
    ""
@@ -138,32 +129,32 @@
 ;;;;;;;;;
 ;; Instructions
 
-(defn in1
-  "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
-  [state]
-  (push-to-stack state :exec (:in1 (:input state))))
+; (defn in1
+;   "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
+;   [state]
+;   (push-to-stack state :exec (:in1 (:input state))))
 
-(defn integer_+
-  [state]
-  (make-push-instruction state +' [:integer :integer] :integer))
+; (defn integer_+
+;   [state]
+;   (make-push-instruction state +' [:integer :integer] :integer))
 
-(defn integer_-
-  [state]
-  (make-push-instruction state -' [:integer :integer] :integer))
+; (defn integer_-
+;   [state]
+;   (make-push-instruction state -' [:integer :integer] :integer))
 
-(defn integer_*
-  [state]
-  (make-push-instruction state *' [:integer :integer] :integer))
+; (defn integer_*
+;   [state]
+;   (make-push-instruction state *' [:integer :integer] :integer))
 
-(defn integer_%
-  [state]
-  (make-push-instruction state
-                         (fn [int1 int2]
-                           (if (zero? int2)
-                             int1
-                             (quot int1 int2)))
-                         [:integer :integer]
-                         :integer))
+; (defn integer_%
+;   [state]
+;   (make-push-instruction state
+;                          (fn [int1 int2]
+;                            (if (zero? int2)
+;                              int1
+;                              (quot int1 int2)))
+;                          [:integer :integer]
+;                          :integer))
 
 (defn integer_=
   [state]
@@ -424,62 +415,21 @@
                                  #(new-individual evaluated-pop argmap)))))))
 
 ;;;;;;;;;
-;; Problem: f(x) = 7x^2 - 20x + 13
-
-(defn target-function-hard
-  "Target function: f(x) = 7x^2 - 20x + 13"
-  [x]
-  (+ (* 7 x x)
-     (* -20 x)
-     13))
-
-(defn target-function
-  "Target function: f(x) = x^3 + x + 3"
-  [x]
-  (+ (* x x x)
-     x
-     3))
-
-(defn regression-error-function
-  "Finds the behaviors and errors of the individual."
-  [argmap individual]
-  (let [program (push-from-plushy (:plushy individual))
-        inputs (range -10 11)
-        correct-outputs (map target-function inputs)
-        outputs (map (fn [input]
-                       (peek-stack
-                        (interpret-program
-                         program
-                         (assoc empty-push-state :input {:in1 input})
-                         (:step-limit argmap))
-                        :integer))
-                     inputs)
-        errors (map (fn [correct-output output]
-                      (if (= output :no-stack-item)
-                        1000000
-                        (abs (- correct-output output))))
-                    correct-outputs
-                    outputs)]
-    (assoc individual
-           :behaviors outputs
-           :errors errors
-           :total-error (apply +' errors))))
-
-;;;;;;;;;
 ;; small large fitness
 (defn small-large
   [n]
   (cond
-    (zero? (n < 1000)) "small"
-    (zero? (n >= 1000 < 2000)) ""
-    (zero? (n >= 2000)) "large"
-    ))
+    (< n 1000) "small"
+    (>= n 1000) ""
+    (< n 2000) ""
+    (>= n 2000) "large"
+    :else (n)))
 
 (def small-large-training
 (map small-large (range 750 3001 250))
 )
 
-(defn chars
+(defn small-large-output
   [max-error correct-output actual-output]
   (min max-error (-(count actual-output) (count correct-output))))
 
@@ -489,30 +439,57 @@
   [actual-output]
   (cond
     (every? #(clojure.string/includes? actual-output %) ["small" "large"])
-    (+ 10 (chars 5 "" actual-output))
+    (+ 10 (small-large-output 5 "" actual-output))
     (some #(clojure.string/includes? actual-output %) ["small" "large"])
-    (+ 20 (chars 10 "" actual-output))
+    (+ 20 (small-large-output 10 "" actual-output))
     :else small-large-failure-error))
 
-;(defn small-large-error-function
-  
-;  )
+(defn small-large-error 
+  [correct-output actual-output]
+  (cond
+    (= actual-output :no-stack-item) (* 10 small-large-failure-error)
+    (clojure.string/includes? actual-output correct-output)
+    (small-large-output 20 correct-output actual-output)
+    (= correct-output "") (small-large-failure-error actual-output)
+    :else small-large-failure-error))
 
+(defn small-large-error-function
+  [argmap individual]
+  (let [program (push-from-plushy (:plushy individual))
+        inputs (range 750 3001 250)
+        correct-outputs small-large-training
+        outputs (map (fn [input]
+                       (peek-stack
+                        (interpret-program
+                         program
+                         (assoc empty-push-state :input {:in1 input})
+                         (:step-limit argmap))
+                        :string))
+                     inputs)
+        errors (map small-large-error
+                    correct-outputs
+                    outputs)]
+    (assoc individual
+           :behaviors outputs
+           :errors errors
+           :total-error (apply +' errors))))
 
+(comment "
 (defn nextelt
-  "Given two characters, the previous row, and a row we are
-  building, determine out the next element fot this row."
+  ;;Given two characters, the previous row, and a row we are
+  ;;building, determine out the next element fot this row.
   [char1 char2 prevrow thisrow position]
   (if (= char1 char2)
     (prevrow (- position 1))
     (+ 1 (min
           (prevrow (- position 1))
           (prevrow position)
-          (last thisrow)))))
+          (last thisrow))))")
 
+(comment "
 (defn nextrow
-  "Based on the next character from string1 and the whole of string2
-  calculate the next row. Initially thisrow contains one number."
+  ;;Based on the next character from string1 and the whole of string2
+  ;;calculate the next row. Initially thisrow contains one number.
   [char1 str2 prevrow thisrow]
   (let [char2 (first str2)
         position (count thisrow)]
@@ -522,11 +499,11 @@
        char1
        (rest str2)
        prevrow
-       (conj thisrow (nextelt char1 char2 prevrow thisrow position))))))
+       (conj thisrow (nextelt char1 char2 prevrow thisrow position))))))")
 
-
+(comment "
 (defn levenshtein1
-  "Calculate the Levenshtein distance between two strings."
+  ;;Calculate the Levenshtein distance between two strings.
   ([str1 str2]
    (let [row0 (vec (map first (map vector (iterate inc 1) str2)))]
      (levenshtein1 1 (vec (cons 0 row0)) str1 str2)))
@@ -535,16 +512,14 @@
          str1-remainder (.substring str1 1)]
      (if (= "" str1-remainder)
        (last next-row)
-       (recur (inc row-nr) next-row str1-remainder str2)))))
-
-
-
+       (recur (inc row-nr) next-row str1-remainder str2)))))")
 
 ;;;;;;;;;
 ;; String classification
 
+ 
 (defn string-classification-error-function
-  "Finds the behaviors and errors of the individual."
+  ;Finds the behaviors and errors of the individual.
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
         inputs ["GCG" "GACAG" "AGAAG" "CCCA" "GATTACA" "TAGG" "GACT"]
@@ -575,12 +550,12 @@
   [& args]
   (binding [*ns* (the-ns 'propel.core)]
     (propel-gp (update-in (merge {:instructions default-instructions
-                                  :error-function regression-error-function
+                                  :error-function small-large-error-function
                                   :max-generations 500
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
-                                  :parent-selection :lexicase
+                                  :parent-selection :lexicase-selection
                                   :tournament-size 5}
                                  (apply hash-map
                                         (map read-string args)))
