@@ -129,32 +129,32 @@
 ;;;;;;;;;
 ;; Instructions
 
-; (defn in1
-;   "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
-;   [state]
-;   (push-to-stack state :exec (:in1 (:input state))))
+(defn in1
+  "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
+  [state]
+  (push-to-stack state :exec (:in1 (:input state))))
 
-; (defn integer_+
-;   [state]
-;   (make-push-instruction state +' [:integer :integer] :integer))
+(defn integer_+
+  [state]
+  (make-push-instruction state +' [:integer :integer] :integer))
 
-; (defn integer_-
-;   [state]
-;   (make-push-instruction state -' [:integer :integer] :integer))
+(defn integer_-
+  [state]
+  (make-push-instruction state -' [:integer :integer] :integer))
 
-; (defn integer_*
-;   [state]
-;   (make-push-instruction state *' [:integer :integer] :integer))
+(defn integer_*
+  [state]
+  (make-push-instruction state *' [:integer :integer] :integer))
 
-; (defn integer_%
-;   [state]
-;   (make-push-instruction state
-;                          (fn [int1 int2]
-;                            (if (zero? int2)
-;                              int1
-;                              (quot int1 int2)))
-;                          [:integer :integer]
-;                          :integer))
+(defn integer_%
+  [state]
+  (make-push-instruction state
+                         (fn [int1 int2]
+                           (if (zero? int2)
+                             int1
+                             (quot int1 int2)))
+                         [:integer :integer]
+                         :integer))
 
 (defn integer_=
   [state]
