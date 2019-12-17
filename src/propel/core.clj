@@ -19,10 +19,8 @@
    'integer_+
    'integer_-
    'integer_*
-   'integer_%
    'integer_=
-   ;'interger_zero?
-   ;'interger_to_string
+   'integer_to_string
    'exec_dup
    'exec_if
    'boolean_and
@@ -39,6 +37,18 @@
    'close
    true
    false
+   250
+   500
+   750
+   1000
+   1250
+   1500
+   1750
+   2000
+   2250
+   2500
+   2750
+   3000
    ""
    "small"
    "large"
@@ -129,32 +139,27 @@
 ;;;;;;;;;
 ;; Instructions
 
-; (defn in1
-;   "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
-;   [state]
-;   (push-to-stack state :exec (:in1 (:input state))))
+(defn in1
+  "Pushes the input labeled :in1 on the inputs map onto the :exec stack."
+  [state]
+  (push-to-stack state :exec (:in1 (:input state))))
 
-; (defn integer_+
-;   [state]
-;   (make-push-instruction state +' [:integer :integer] :integer))
+(defn integer_+
+  [state]
+  (make-push-instruction state +' [:integer :integer] :integer))
 
-; (defn integer_-
-;   [state]
-;   (make-push-instruction state -' [:integer :integer] :integer))
+(defn integer_-
+  [state]
+  (make-push-instruction state -' [:integer :integer] :integer))
 
-; (defn integer_*
-;   [state]
-;   (make-push-instruction state *' [:integer :integer] :integer))
+(defn integer_*
+  [state]
+  (make-push-instruction state *' [:integer :integer] :integer))
 
-; (defn integer_%
-;   [state]
-;   (make-push-instruction state
-;                          (fn [int1 int2]
-;                            (if (zero? int2)
-;                              int1
-;                              (quot int1 int2)))
-;                          [:integer :integer]
-;                          :integer))
+
+(defn integer_to_string
+  [state]
+  (make-push-instruction state str [:integer] :string))
 
 (defn integer_=
   [state]
@@ -420,13 +425,12 @@
   [n]
   (cond
     (< n 1000) "small"
-    (>= n 1000) ""
-    (< n 2000) ""
     (>= n 2000) "large"
-    :else (n)))
+    :else ""))
+
 
 (def small-large-training
-(map small-large (range 750 3001 250))
+(map small-large (range 250 3001 250))
 )
 
 (defn small-large-output
@@ -438,25 +442,26 @@
 (defn small-large-failure-error
   [actual-output]
   (cond
-    (every? #(clojure.string/includes? actual-output %) ["small" "large"])
+    (every? #(clojure.string/includes? actual-output %) ["large"])
     (+ 10 (small-large-output 5 "" actual-output))
-    (some #(clojure.string/includes? actual-output %) ["small" "large"])
+    (some #(clojure.string/includes? actual-output %) ["small"])
     (+ 20 (small-large-output 10 "" actual-output))
-    :else small-large-failure-error))
+    :else small-large-failure))
 
-(defn small-large-error 
+(defn small-large-error
   [correct-output actual-output]
   (cond
-    (= actual-output :no-stack-item) (* 10 small-large-failure-error)
+    (= actual-output :no-stack-item) (+ 50 small-large-failure)
     (clojure.string/includes? actual-output correct-output)
     (small-large-output 20 correct-output actual-output)
-    (= correct-output "") (small-large-failure-error actual-output)
-    :else small-large-failure-error))
+    (= correct-output "largesmall") (small-large-failure-error actual-output)
+    (= correct-output "smalllarge") (small-large-failure-error actual-output)
+    :else small-large-failure))
 
 (defn small-large-error-function
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
-        inputs (range 750 3001 250)
+        inputs (range 250 3001 250)
         correct-outputs small-large-training
         outputs (map (fn [input]
                        (peek-stack
@@ -555,7 +560,7 @@
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
-                                  :parent-selection :lexicase-selection
+                                  :parent-selection :lexicase
                                   :tournament-size 5}
                                  (apply hash-map
                                         (map read-string args)))
