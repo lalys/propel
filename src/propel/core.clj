@@ -31,7 +31,7 @@
    'string_take
    'string_drop
    'string_reverse
-   'string_concat
+  ;  'string_concat
    'string_length
    'string_includes?
    'close
@@ -219,12 +219,12 @@
                          [:string]
                          :string))
 
-(defn string_concat
-  [state]
-  (make-push-instruction state
-                         #(apply str (concat %1 %2))
-                         [:string :string]
-                         :string))
+; (defn string_concat
+;   [state]
+;   (make-push-instruction state
+;                          #(apply str (concat %1 %2))
+;                          [:string :string]
+;                          :string))
 
 (defn string_length
   [state]
@@ -442,20 +442,20 @@
 (defn small-large-failure-error
   [actual-output]
   (cond
-    (every? #(clojure.string/includes? actual-output %) ["large"])
+    (every? #(clojure.string/includes? actual-output %) ["large" "small"])
     (+ 10 (small-large-output 5 "" actual-output))
-    (some #(clojure.string/includes? actual-output %) ["small"])
+    (some #(clojure.string/includes? actual-output %) ["small" "large"])
     (+ 20 (small-large-output 10 "" actual-output))
     :else small-large-failure))
 
 (defn small-large-error
   [correct-output actual-output]
   (cond
-    (= actual-output :no-stack-item) (+ 50 small-large-failure)
+    (= actual-output :no-stack-item) (* 100 small-large-failure)
     (clojure.string/includes? actual-output correct-output)
     (small-large-output 20 correct-output actual-output)
-    (= correct-output "largesmall") (small-large-failure-error actual-output)
-    (= correct-output "smalllarge") (small-large-failure-error actual-output)
+    ; (= correct-output "largesmall") (small-large-failure-error actual-output)
+    ; (= correct-output "smalllarge") (small-large-failure-error actual-output)
     :else small-large-failure))
 
 (defn small-large-error-function
@@ -560,6 +560,7 @@
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
+                                  ;;:parent-selection :tournament
                                   :parent-selection :lexicase
                                   :tournament-size 5}
                                  (apply hash-map
