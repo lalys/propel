@@ -31,12 +31,13 @@
    'string_take
    'string_drop
    'string_reverse
-  ;  'string_concat
    'string_length
    'string_includes?
    'close
    true
    false
+   -250
+   0
    250
    500
    750
@@ -219,12 +220,6 @@
                          [:string]
                          :string))
 
-; (defn string_concat
-;   [state]
-;   (make-push-instruction state
-;                          #(apply str (concat %1 %2))
-;                          [:string :string]
-;                          :string))
 
 (defn string_length
   [state]
@@ -430,7 +425,7 @@
 
 
 (def small-large-training
-(map small-large (range 250 3001 250))
+(map small-large (range -250 3001 250))
 )
 
 (defn small-large-output
@@ -454,14 +449,12 @@
     (= actual-output :no-stack-item) (* 100 small-large-failure)
     (clojure.string/includes? actual-output correct-output)
     (small-large-output 20 correct-output actual-output)
-    ; (= correct-output "largesmall") (small-large-failure-error actual-output)
-    ; (= correct-output "smalllarge") (small-large-failure-error actual-output)
     :else small-large-failure))
 
 (defn small-large-error-function
   [argmap individual]
   (let [program (push-from-plushy (:plushy individual))
-        inputs (range 250 3001 250)
+        inputs (range -250 3001 250)
         correct-outputs small-large-training
         outputs (map (fn [input]
                        (peek-stack
@@ -560,6 +553,7 @@
                                   :population-size 200
                                   :max-initial-plushy-size 50
                                   :step-limit 100
+                                  ;;:parent-selection :levenshtein1
                                   ;;:parent-selection :tournament
                                   :parent-selection :lexicase
                                   :tournament-size 5}
