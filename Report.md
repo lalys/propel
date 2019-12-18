@@ -3,6 +3,13 @@ For our problem, we chose to do small or large from the General Program Synthesi
 
 ## How we set up the problem
 To set up the problem, we looked at the fizz buzz problem and used some ideas from it like the extra characters. Of course, we had to add our own constants and functions to make it work. We knew that we needed small, large, and an empty string to get it to work. Instructions such as integer_to_string and string_drop were vital to make our problem work. 
+Fitness:
+(defn small-large
+  [n]
+  (cond
+    (< n 1000) "small"
+    (>= n 2000) "large"
+    :else ""))
 
 ## Results
 Ours first results weren't that good because we had our range set up to only have one small number which made the tests become filled with only large because it got lazy and had a low error score for small. For lexicase it would solve it would solve the majority of the time and it took about 350 generations. It seems like it had trouble returning nothing as an output causing generations to be the same for awhile. We tried to figure out why it did that but coulnd't figure out how to help it return nothing. We still don't know why. Lexicase is the best kind of selection from what we could tell.
